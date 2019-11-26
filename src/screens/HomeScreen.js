@@ -10,7 +10,7 @@ export default function HomeScreen({
 }) {
 	return (
 		<View>
-			<Box bg="darkorange" variant={['spaced', 'full']} pt={4} scroll>
+			<Box bg="darkorange" variant={['full']} pt={4} scroll>
 				<Box
 					bg="darkorange"
 					flexDirection="row"
