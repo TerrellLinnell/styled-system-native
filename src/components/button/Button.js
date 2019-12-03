@@ -26,7 +26,7 @@ const CustomTouchableOpacity = styled(TouchableOpacity)(
 	variant({
 		variants: {
 			skeleton: {
-				border: props => `1px solid ${props.colors.text}`,
+				border: 'none',
 				background: 'transparent',
 			},
 			green: {

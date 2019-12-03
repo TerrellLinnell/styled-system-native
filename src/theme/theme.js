@@ -56,7 +56,7 @@ const colors = {
 };
 
 export default {
-	initialColorMode: 'dark',
+	initialColorMode: 'cyan',
 	colors,
 	fontSizes: [12, 14, 16, 20, 24, 32, 48, 64, 96],
 };

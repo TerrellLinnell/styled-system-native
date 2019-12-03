@@ -1,6 +1,6 @@
 import React from 'react';
 import styled from 'styled-components';
-import { ScrollView, View } from 'react-native';
+import { ScrollView, Animated, View } from 'react-native';
 
 import {
 	space,
@@ -11,10 +11,22 @@ import {
 	fontSize,
 	lineHeight,
 	variant,
+	shadow,
 } from 'styled-system';
 
-export const Box = ({ scroll, children, ...props }) => (
-	<CustomBox as={scroll ? ScrollView : View} {...props}>
+export const Box = ({ scroll, animated, children, ...props }) => (
+	<CustomBox
+		as={
+			scroll && !Animated
+				? ScrollView
+				: scroll && Animated
+				? Animated.ScrollView
+				: !scroll && Animated
+				? Animated.View
+				: View
+		}
+		{...props}
+	>
 		{children}
 	</CustomBox>
 );
@@ -27,6 +39,7 @@ const CustomBox = styled(View)(
 	border,
 	fontSize,
 	lineHeight,
+	shadow,
 	variant({
 		variants: {
 			rounded: {
