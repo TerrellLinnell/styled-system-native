@@ -1,5 +1,13 @@
-import React, { useState } from 'react';
-import { Dimensions, ScrollView, Text, View, TextInput } from 'react-native';
+import React, { useState, useRef } from 'react';
+import {
+	Alert,
+	Dimensions,
+	ScrollView,
+	Text,
+	View,
+	TextInput,
+	TouchableOpacity,
+} from 'react-native';
 
 import { Box, Image, Typography, Button, Shelf } from '../components';
 import Carousel, {
@@ -7,8 +15,12 @@ import Carousel, {
 	getInputRangeFromIndexes,
 } from 'react-native-snap-carousel';
 
-import { layout } from 'styled-system';
-import styled from 'styled-components';
+import { Formik } from 'formik';
+import * as Yup from 'yup';
+import CarouselComponent1 from './CarouselComponent1';
+import CarouselComponentLast from './CarouselComponentLast';
+
+import { CarouselPaginationBar } from './CarouselPaginationBar';
 
 const { height, width } = Dimensions.get('window');
 
@@ -17,25 +29,7 @@ export default function HomeScreen({
 	...props
 }) {
 	const [activeSlide, setActiveSlide] = useState(0);
-
-	const getPagination = () => (
-		<Pagination
-			dotsLength={data.length}
-			activeDotIndex={activeSlide}
-			containerStyle={{
-				backgroundColor: 'white',
-				paddingVertical: 8,
-			}}
-			dotElement={
-				<Box width={width / 9} mx={1} height={3} bg="rgba(0, 0, 0, 0.92)"></Box>
-			}
-			inactiveDotElement={
-				<Box width={width / 9} mx={1} height={3} bg="rgba(0, 0, 0, 0.4)"></Box>
-			}
-			inactiveDotOpacity={0.4}
-			inactiveDotScale={0.6}
-		/>
-	);
+	const carouselRef = useRef(null);
 
 	const scrollInterpolator = (index, carouselProps) => {
 		const range = [5, 4, 3, 2, 1, 0, -1];
@@ -46,11 +40,6 @@ export default function HomeScreen({
 	};
 
 	const animatedStyles = (index, animatedValue, carouselProps) => {
-		const sizeRef = carouselProps.vertical
-			? carouselProps.itemHeight
-			: carouselProps.itemWidth;
-		const translateProp = carouselProps.vertical ? 'translateY' : 'translateX';
-
 		return {
 			transform: [
 				{
@@ -64,55 +53,130 @@ export default function HomeScreen({
 		};
 	};
 
+	const getPagination = () => {
+		return (
+			<Pagination
+				dotsLength={data.length}
+				activeDotIndex={activeSlide}
+				containerStyle={{
+					backgroundColor: 'white',
+					paddingVertical: 15,
+				}}
+				dotElement={
+					<CarouselPaginationBar width={width / 9} carouselRef={carouselRef} />
+				}
+				inactiveDotElement={
+					<CarouselPaginationBar
+						width={width / 9}
+						carouselRef={carouselRef}
+						inactive
+					/>
+				}
+				inactiveDotOpacity={0.4}
+				inactiveDotScale={0.6}
+			/>
+		);
+	};
+
 	return (
-		<View>
-			<Box bg="white" variant={['full']} pt={35} scroll>
-				{getPagination()}
-				<Box
-					bg="#F0FFF0"
-					flexDirection="row"
-					justifyContent="space-between"
-					p={1}
-				>
-					<Button variant={['skeleton']} onPress={chooseMode}>
-						<Typography type="h3">{'<'}</Typography>
-					</Button>
-					<Button variant={['skeleton']} onPress={chooseMode}>
-						<Typography type="h3">cancel</Typography>
-					</Button>
-				</Box>
-				<Carousel
-					data={data}
-					renderItem={item => item.item}
-					sliderWidth={width}
-					sliderHeight={height}
-					itemWidth={width}
-					activeSlideAlignment={'start'}
-					onSnapToItem={index => setActiveSlide(index)}
-					scrollInterpolator={scrollInterpolator}
-					slideInterpolatedStyle={animatedStyles}
-				/>
-			</Box>
-		</View>
+		<Formik
+			initialValues={{ email: '' }}
+			onSubmit={values => console.log(values)}
+		>
+			{({ handleChange, handleBlur, handleSubmit, values }) => (
+				<View>
+					<Box bg="white" variant={['full']} pt={35} scroll>
+						{getPagination()}
+
+						<Box
+							bg="#F0FFF0"
+							flexDirection="row"
+							justifyContent="space-between"
+							p={1}
+						>
+							<Button
+								variant={['skeleton']}
+								onPress={() =>
+									Alert.alert(
+										'Back button?',
+										null,
+										[{ text: 'Go Back', onPress: handleSubmit }],
+										{
+											cancelable: false,
+										},
+									)
+								}
+							>
+								<Typography type="h3">{'<'}</Typography>
+							</Button>
+							<Button
+								variant={['skeleton']}
+								onPress={() =>
+									Alert.alert(
+										'Cancel / save progress',
+										null,
+										[
+											{
+												text: 'Save',
+												onPress: handleSubmit,
+												style: 'cancel',
+											},
+										],
+										{ cancelable: false },
+									)
+								}
+							>
+								<Typography type="h3">cancel</Typography>
+							</Button>
+						</Box>
+
+						<View>
+							<Carousel
+								ref={carouselRef}
+								data={data}
+								renderItem={item => {
+									return React.cloneElement(item.item, {
+										values,
+										handleSubmit,
+										handleBlur,
+										handleChange,
+									});
+								}}
+								sliderWidth={width}
+								sliderHeight={height}
+								itemWidth={width}
+								activeSlideAlignment={'start'}
+								onSnapToItem={index => setActiveSlide(index)}
+								scrollInterpolator={scrollInterpolator}
+								slideInterpolatedStyle={animatedStyles}
+								firstItem={activeSlide}
+							/>
+						</View>
+					</Box>
+				</View>
+			)}
+		</Formik>
 	);
 }
-const Input = styled(TextInput)(layout);
 
 const data = [
-	<Box id={'0'} width={width} height={height} bg="red">
-		<Input
-			width={1 / 2}
-			height={40}
-			placeholder={'Useless Placeholder'}
-			textContentType={'countryName'}
-		/>
+	<CarouselComponent1 />,
+	<Box id={'1'} width={width} height={height} bg="orange">
+		<Typography type="h2">2</Typography>
 	</Box>,
-	<Box id={'1'} width={width} height={height} bg="orange"></Box>,
-	<Box id={'2'} width={width} height={height} bg="yellow"></Box>,
-	<Box id={'3'} width={width} height={height} bg="green"></Box>,
-	<Box id={'4'} width={width} height={height} bg="blue"></Box>,
-	<Box id={'5'} width={width} height={height} bg="indigo"></Box>,
-	<Box id={'5'} width={width} height={height} bg="violet"></Box>,
+	<Box id={'2'} width={width} height={height} bg="yellow">
+		<Typography type="h2">3</Typography>
+	</Box>,
+	<Box id={'3'} width={width} height={height} bg="green">
+		<Typography type="h2">4</Typography>
+	</Box>,
+	<Box id={'4'} width={width} height={height} bg="blue">
+		<Typography type="h2">5</Typography>
+	</Box>,
+	<Box id={'5'} width={width} height={height} bg="indigo">
+		<Typography type="h2">6</Typography>
+	</Box>,
+	<CarouselComponentLast />,
 ];
 
 HomeScreen.navigationOptions = {
